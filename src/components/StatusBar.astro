@@ -1,0 +1,45 @@
+---
+type AlertType = 'info' | 'warning' | 'error';
+
+interface Alert {
+  id: string;
+  type: AlertType;
+  icon: string;
+  message: string;
+  active: boolean;
+}
+
+const alerts: Alert[] = [
+  {
+    id: 'retro-legal',
+    type: 'info',
+    icon: 'gavel',
+    message: '自分のカートリッジからROMを吸い出して遊ぶ方法を、著作権法第30条に基づき解説しています',
+    active: true,
+  },
+];
+
+const styles = {
+  info:    { bar: 'bg-indigo-50 border-indigo-200', text: 'text-indigo-800', icon: 'text-indigo-500' },
+  warning: { bar: 'bg-amber-50 border-amber-300',   text: 'text-amber-900',  icon: 'text-amber-500' },
+  error:   { bar: 'bg-red-50 border-red-300',       text: 'text-red-900',    icon: 'text-red-500' },
+};
+
+const activeAlerts = alerts.filter(a => a.active);
+---
+
+{activeAlerts.length > 0 && (
+  <div id="site-status-bar" class="border-b border-gray-200">
+    {activeAlerts.map(alert => {
+      const s = styles[alert.type];
+      return (
+        <div class={`${s.bar} border-b last:border-b-0`}>
+          <div class="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-1.5 sm:py-2 flex items-center gap-1.5 sm:gap-2">
+            <span class={`material-symbols-outlined ${s.icon} text-[16px] sm:text-[18px] leading-none`} aria-hidden="true">{alert.icon}</span>
+            <span class={`text-xs sm:text-sm font-medium ${s.text}`}>{alert.message}</span>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+)}

@@ -1,0 +1,39 @@
+---
+const base = import.meta.env.BASE_URL;
+---
+<header class="bg-white shadow-sm border-b border-indigo-100 relative">
+  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+    <a href={base} class="flex items-center gap-2 sm:gap-3 font-bold text-sm sm:text-xl text-indigo-600 touch-manipulation">
+      <img src={`${base}assets/img/logo.png`} alt="bunchoniki Retroのロゴ" width="32" height="32" class="h-8 w-auto" />
+      <span translate="no">bunchoniki Retro</span>
+    </a>
+    <ul class="hidden md:flex gap-8">
+      <li><a href={base} class="text-gray-700 hover:text-indigo-600 transition-colors">ホーム</a></li>
+      <li><a href={`${base}articles/`} class="text-gray-700 hover:text-indigo-600 transition-colors">記事</a></li>
+      <li><a href="https://altstore-jp.bunchoniki.com" class="text-gray-700 hover:text-indigo-600 transition-colors" rel="noopener">姉妹サイト</a></li>
+    </ul>
+    <button id="menu-toggle" class="md:hidden text-gray-700 touch-manipulation" aria-label="メニューを開く" aria-expanded="false" aria-controls="mobile-menu">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+      </svg>
+    </button>
+  </nav>
+  <nav id="mobile-menu" class="hidden md:hidden bg-white border-t border-indigo-100 absolute top-full left-0 right-0 shadow-lg z-50">
+    <ul class="flex flex-col p-2">
+      <li><a href={base} class="text-gray-700 block w-full px-4 py-3 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-colors font-medium touch-manipulation">ホーム</a></li>
+      <li><a href={`${base}articles/`} class="text-gray-700 block w-full px-4 py-3 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-colors font-medium touch-manipulation">記事</a></li>
+      <li><a href="https://altstore-jp.bunchoniki.com" class="text-gray-700 block w-full px-4 py-3 rounded-lg hover:bg-indigo-50 hover:text-indigo-600 transition-colors font-medium touch-manipulation" rel="noopener">姉妹サイト: bunchoniki Store</a></li>
+    </ul>
+  </nav>
+</header>
+
+<script>
+  const toggle = document.getElementById('menu-toggle');
+  const menu = document.getElementById('mobile-menu');
+  if (toggle && menu) {
+    toggle.addEventListener('click', () => {
+      const isHidden = menu.classList.toggle('hidden');
+      toggle.setAttribute('aria-expanded', String(!isHidden));
+    });
+  }
+</script>

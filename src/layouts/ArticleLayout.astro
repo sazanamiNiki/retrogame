@@ -1,0 +1,346 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Schema from '../components/Schema.astro';
+
+// FAQエントリの型定義
+interface FaqItem {
+  question: string;
+  answer: string;
+}
+
+// HowToステップの型定義
+interface HowToStep {
+  name: string;
+  text: string;
+}
+
+// HowToデータの型定義
+interface HowToData {
+  name: string;
+  description?: string;
+  steps: HowToStep[];
+}
+
+interface Props {
+  title: string;
+  h1?: string;
+  /** ページ上部に表示する短い説明（50〜80字推奨） */
+  summary?: string;
+  /** SEO用のmeta description（100〜160字推奨） */
+  description?: string;
+  date?: string;
+  icon?: string;
+  iconColor?: string;
+  ogImage?: string;
+  /** FAQPageスキーマ用: 質問と回答の配列 */
+  faq?: FaqItem[];
+  /** HowToスキーマ用: 手順データ */
+  howto?: HowToData;
+}
+
+const {
+  title,
+  h1,
+  summary,
+  description,
+  date,
+  icon = 'shield',
+  iconColor = 'text-blue-500',
+  ogImage,
+  faq,
+  howto,
+} = Astro.props;
+
+// ページ表示用: summary があれば使用、なければ description にフォールバック
+const displaySummary = summary ?? description;
+
+const displayTitle = h1 ?? title;
+
+const siteUrl = 'https://retrogame.bunchoniki.com';
+const profileUrl = 'https://altstore-jp.bunchoniki.com/articles/our-policy/';
+const canonicalUrl = new URL(Astro.url.pathname, siteUrl).toString();
+
+// ── Articleスキーマ ──────────────────────────────────────────────
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": title,
+  "description": description ?? "",
+  // datePublished・dateModified は date が未指定の場合は省略
+  ...(date && {
+    "datePublished": date,
+    "dateModified": date,
+  }),
+  "author": {
+    "@type": "Person",
+    "name": "bunchoniki",
+    "url": profileUrl,
+    "description": "2019年からAltStore等のサイドローディングツールを利用し、レトロゲームを合法的に楽しんできたiOSユーザー。日本語圏の情報格差を埋める活動。"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "bunchoniki Retro",
+    "url": siteUrl,
+    "logo": {
+      "@type": "ImageObject",
+      "url": `${siteUrl}/assets/img/logo.png`,
+    },
+  },
+  "image": `${siteUrl}/assets/img/logo.png`,
+  "url": canonicalUrl,
+  "inLanguage": "ja",
+};
+
+// ── BreadcrumbListスキーマ ────────────────────────────────────────
+// URLパスを分解してパンくずリストを生成する
+// 例: /articles/faq → ホーム > 記事一覧 > よくある質問
+const pathSegments = Astro.url.pathname.replace(/\/$/, '').split('/').filter(Boolean);
+
+// パスセグメントを人間が読める名前にマッピング
+const segmentLabels: Record<string, string> = {
+  articles: "記事一覧",
+};
+
+const breadcrumbItems = [
+  // 先頭は常にトップページ
+  {
+    "@type": "ListItem",
+    "position": 1,
+    "name": "ホーム",
+    "item": siteUrl,
+  },
+  // 残りのセグメントを順番に展開
+  ...pathSegments.map((seg, index) => ({
+    "@type": "ListItem",
+    "position": index + 2,
+    // マッピングがあればその名前、なければページタイトルを使用
+    "name": segmentLabels[seg] ?? (index === pathSegments.length - 1 ? title : seg),
+    "item": new URL(
+      pathSegments.slice(0, index + 1).join('/') + '/',
+      siteUrl
+    ).toString(),
+  })),
+];
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": breadcrumbItems,
+};
+
+// ── FAQPageスキーマ（faq props が渡された場合のみ生成）────────────
+const faqSchema = faq && faq.length > 0
+  ? {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": faq.map((item) => ({
+        "@type": "Question",
+        "name": item.question,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": item.answer,
+        },
+      })),
+    }
+  : null;
+
+// ── HowToスキーマ（howto props が渡された場合のみ生成）──────────
+const howtoSchema = howto
+  ? {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": howto.name,
+      ...(howto.description && { "description": howto.description }),
+      "step": howto.steps.map((step, index) => ({
+        "@type": "HowToStep",
+        "position": index + 1,
+        "name": step.name,
+        "text": step.text,
+      })),
+    }
+  : null;
+---
+
+<BaseLayout title={title} description={description} ogType="article" ogImage={ogImage}>
+  <!-- Article・BreadcrumbListスキーマをschemaスロット経由でheadに注入 -->
+  <Fragment slot="schema">
+    <Schema data={articleSchema} />
+    <Schema data={breadcrumbSchema} />
+    {faqSchema && <Schema data={faqSchema} />}
+    {howtoSchema && <Schema data={howtoSchema} />}
+  </Fragment>
+
+  <main class="max-w-3xl mx-auto px-4 py-6 sm:py-12">
+    <!-- 記事一覧に戻る -->
+    <div class="mb-4 sm:mb-6">
+      <a href={`${import.meta.env.BASE_URL}articles/`} class="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-bold transition-colors touch-manipulation">
+        <span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>
+        記事一覧に戻る
+      </a>
+    </div>
+
+    <article>
+      <!-- ヒーロー -->
+      <div class="mb-6 sm:mb-8 pb-6 sm:pb-8 border-b-2 border-blue-200">
+        <h1 class="text-2xl sm:text-3xl font-bold mb-2 text-slate-800 flex items-start gap-2 sm:gap-3 text-balance">
+          <span class={`material-symbols-outlined ${iconColor} text-[1.75rem] sm:text-[2rem] flex-shrink-0 mt-0.5`} aria-hidden="true">{icon}</span>
+          <span>{displayTitle}</span>
+        </h1>
+        {displaySummary && <p class="text-gray-600 text-base mt-1">{displaySummary}</p>}
+      </div>
+
+      <!-- MDXコンテンツ（スキャン可能UIに変換） -->
+      <div class="article-content">
+        <slot />
+      </div>
+
+      {date && (
+        <div id="article-metadata" data-section="metadata" class="mt-8 pt-6 border-t border-gray-200">
+          <p class="text-gray-500 text-sm">最終更新: {date}</p>
+        </div>
+      )}
+
+      <!-- Author情報: E-E-A-T強化のため記事末尾に運営者情報を表示 -->
+      <aside class="mt-6 sm:mt-8 p-4 sm:p-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100" itemscope itemtype="https://schema.org/Person">
+        <div class="flex items-start gap-3 sm:gap-4">
+          <img
+            src={`${import.meta.env.BASE_URL}assets/img/buncho.png`}
+            alt="運営者のアイコン"
+            width="48"
+            height="48"
+            class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white ring-2 ring-blue-200 flex-shrink-0"
+            loading="lazy"
+          />
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-xs sm:text-sm font-bold text-blue-700">この記事を書いた人</span>
+            </div>
+            <h3 class="text-base sm:text-lg font-bold text-gray-900 mb-1" itemprop="name">bunchoniki</h3>
+            <p class="text-xs sm:text-sm text-gray-600 leading-relaxed" itemprop="description">
+              2019年からAltStore等のサイドローディングツールを利用し、レトロゲームを合法的に楽しんできたiOSユーザー。日本語圏の情報格差を埋めるため、記事で紹介する手順は全て自身のiPhone・GB Operator実機で動作確認済み。
+            </p>
+            <a href={profileUrl} class="inline-block mt-2 text-xs sm:text-sm text-blue-600 hover:text-blue-700 font-medium" itemprop="url" target="_blank" rel="noopener">
+              運営者プロフィール・運営方針 →
+            </a>
+          </div>
+        </div>
+      </aside>
+    </article>
+  </main>
+</BaseLayout>
+
+<script>
+  // H2セクションをカード型UIに変換（スキャン可能UI）
+  document.addEventListener('DOMContentLoaded', () => {
+    const content = document.querySelector('.article-content');
+    if (!content) return;
+
+    const h2s = Array.from(content.querySelectorAll('h2'));
+    if (h2s.length === 0) return;
+
+    h2s.forEach((h2) => {
+      // Sectionコンポーネント等でラップ済みのH2はスキップ
+      if (h2.closest('.bg-white, .bg-blue-50, .bg-green-50, .bg-yellow-50')) return;
+
+      const card = document.createElement('div');
+      card.className = 'bg-white rounded-lg p-4 sm:p-8 mb-4 sm:mb-8 border border-gray-200';
+
+      h2.parentNode!.insertBefore(card, h2);
+      card.appendChild(h2);
+
+      // 次のH2またはコンテンツ末尾まで移動
+      let next = card.nextElementSibling;
+      while (next && next.tagName !== 'H2') {
+        const toMove = next;
+        next = next.nextElementSibling;
+        card.appendChild(toMove);
+      }
+    });
+
+    // カード外に残ったH2前のコンテンツをラップ（pやulなどの素のコンテンツのみ対象）
+    const sectionClasses = ['bg-white', 'bg-blue-50', 'bg-green-50', 'bg-yellow-50'];
+    const simpleContentTags = ['P', 'UL', 'OL', 'BLOCKQUOTE', 'PRE', 'H3', 'H4'];
+    const orphans = Array.from(content.children).filter(el => {
+      const isSection = sectionClasses.some(cls => el.classList.contains(cls));
+      const isSimpleContent = simpleContentTags.includes(el.tagName);
+      return !isSection && isSimpleContent;
+    });
+    if (orphans.length > 0) {
+      const introCard = document.createElement('div');
+      introCard.className = 'bg-blue-50 rounded-lg p-4 sm:p-8 mb-4 sm:mb-8 border-l-4 border-blue-500 border border-blue-200';
+      content.insertBefore(introCard, orphans[0]);
+      orphans.forEach(el => introCard.appendChild(el));
+    }
+  });
+</script>
+
+<style>
+  /* スキャン可能UIのMarkdown基本スタイル */
+  .article-content h2 {
+    @apply text-xl sm:text-2xl font-bold mb-4 sm:mb-6 pb-2 sm:pb-3 border-b-2 border-gray-200 text-gray-800 flex items-center gap-2;
+  }
+
+  .article-content h3 {
+    @apply text-lg sm:text-xl font-bold mt-4 sm:mt-6 mb-2 sm:mb-3 text-gray-800;
+  }
+
+  .article-content h4 {
+    @apply text-lg font-semibold mt-4 mb-2 text-gray-700;
+  }
+
+  .article-content p {
+    @apply text-gray-700 leading-relaxed sm:leading-7 mb-3 sm:mb-4;
+  }
+
+  .article-content ul {
+    @apply list-disc pl-4 sm:pl-6 space-y-1.5 sm:space-y-2 text-gray-700 mb-4 sm:mb-6;
+  }
+
+  .article-content ol {
+    @apply list-decimal pl-4 sm:pl-6 space-y-1.5 sm:space-y-2 text-gray-700 mb-4 sm:mb-6;
+  }
+
+  .article-content li {
+    @apply leading-relaxed sm:leading-7;
+  }
+
+  .article-content strong {
+    @apply font-bold text-gray-900;
+  }
+
+  .article-content a {
+    @apply text-blue-600 hover:text-blue-700 underline;
+  }
+
+  .article-content table {
+    @apply w-full border-collapse mb-4 sm:mb-6 text-xs sm:text-sm;
+  }
+
+  .article-content th {
+    @apply bg-gray-100 text-gray-700 font-semibold px-2 sm:px-4 py-1.5 sm:py-2 border border-gray-200 text-left;
+  }
+
+  .article-content td {
+    @apply px-2 sm:px-4 py-1.5 sm:py-2 border border-gray-200 text-gray-700;
+  }
+
+  .article-content code {
+    @apply bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded font-mono text-sm;
+  }
+
+  .article-content pre {
+    @apply bg-gray-900 text-gray-100 p-4 rounded-lg mb-6 overflow-x-auto;
+  }
+
+  .article-content pre code {
+    @apply bg-transparent text-gray-100 p-0;
+  }
+
+  .article-content blockquote {
+    @apply border-l-4 border-blue-300 pl-4 text-gray-600 italic mb-4;
+  }
+
+  .article-content hr {
+    @apply border-gray-200 mb-6;
+  }
+</style>

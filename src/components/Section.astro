@@ -1,0 +1,73 @@
+---
+interface Props {
+  title?: string;
+  icon?: string;
+  iconColor?: string;
+  intro?: boolean;
+  id?: string;
+  'data-section'?: string;
+}
+
+const {
+  title,
+  icon,
+  iconColor,
+  intro = false,
+  id,
+  'data-section': dataSection,
+} = Astro.props;
+
+// id が未指定の場合、title から自動生成（日本語対応のスラッグ化）
+const resolvedId = id ?? (title
+  ? `section-${title.toLowerCase().replace(/[\s　]+/g, '-').replace(/[^\w\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF-]/g, '')}`
+  : undefined);
+
+// data-section の自動判定（article_sections.md に準拠）
+function detectSectionType(sectionTitle: string | undefined, isIntro: boolean): string {
+  if (isIntro) return 'intro';
+  if (!sectionTitle) return 'content';
+
+  const lowerTitle = sectionTitle.toLowerCase();
+
+  // FAQ判定
+  if (lowerTitle.includes('faq') || lowerTitle.includes('質問') || lowerTitle.includes('q&a')) {
+    return 'faq';
+  }
+  // まとめ判定
+  if (lowerTitle.includes('まとめ') || lowerTitle.includes('summary') || lowerTitle.includes('結論')) {
+    return 'summary';
+  }
+  // 関連記事判定
+  if (lowerTitle.includes('関連') || lowerTitle.includes('おすすめ') || lowerTitle.includes('次に読む')) {
+    return 'recommendation';
+  }
+
+  return 'content';
+}
+
+// data-section が未指定の場合、自動判定
+const resolvedDataSection = dataSection ?? detectSectionType(title, intro);
+
+const wrapperClass = intro
+  ? 'bg-blue-50 rounded-lg p-4 sm:p-8 mb-4 sm:mb-8 border-l-4 border-blue-500 border border-blue-200'
+  : 'bg-white rounded-lg p-4 sm:p-8 mb-4 sm:mb-8 border border-gray-200';
+
+const headingClass = intro
+  ? 'text-xl sm:text-2xl font-bold mb-3 sm:mb-4 text-blue-700 flex items-start gap-2 text-balance'
+  : 'text-xl sm:text-2xl font-bold mb-4 sm:mb-6 pb-2 sm:pb-3 border-b-2 border-gray-200 text-gray-800 flex items-start gap-2 text-balance';
+
+const resolvedIconColor = iconColor ?? (intro ? 'text-blue-500' : 'text-blue-600');
+const resolvedIcon = icon ?? (intro ? 'lightbulb' : 'info');
+---
+
+<div class={wrapperClass} id={resolvedId} data-section={resolvedDataSection}>
+  {title && (
+    <h2 class={headingClass}>
+      <span class={`material-symbols-outlined ${resolvedIconColor} flex-shrink-0`} aria-hidden="true">{resolvedIcon}</span>
+      {title}
+    </h2>
+  )}
+  <div class="space-y-4">
+    <slot />
+  </div>
+</div>

@@ -1,0 +1,79 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Schema from '../../components/Schema.astro';
+const base = import.meta.env.BASE_URL;
+const siteUrl = 'https://retrogame.bunchoniki.com';
+
+const articles = [
+  { href: '/articles/delta-guide/', title: 'Delta 完全ガイド', desc: 'iPhone でレトロゲームを遊ぶための定番エミュレータの導入・設定', tag: '基本', tagColor: 'text-blue-600 bg-blue-50' },
+  { href: '/articles/gb-operator-guide/', title: 'GB Operator 完全ガイド', desc: '自分のカートリッジから合法的に ROM を吸い出す方法', tag: '実践', tagColor: 'text-indigo-600 bg-indigo-50' },
+  { href: '/articles/free-games-for-delta/', title: 'Delta 用無料ゲーム特集', desc: 'itch.io で配布される合法 homebrew をまとめて紹介', tag: '紹介', tagColor: 'text-purple-600 bg-purple-50' },
+  { href: '/articles/emulator-legal/', title: 'エミュレータと著作権', desc: '日本国内での正しい遊び方・Switch 系エミュ壊滅の経緯', tag: '法律', tagColor: 'text-green-600 bg-green-50' },
+];
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "ホーム", "item": siteUrl },
+    { "@type": "ListItem", "position": 2, "name": "記事一覧", "item": `${siteUrl}/articles/` },
+  ]
+};
+
+const articleListSchema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "レトロゲーム解説記事一覧",
+  "numberOfItems": articles.length,
+  "itemListElement": articles.map((article, i) => ({
+    "@type": "ListItem",
+    "position": i + 1,
+    "name": article.title,
+    "url": `${siteUrl}${article.href}`
+  }))
+};
+---
+<BaseLayout
+  title="記事一覧"
+  description="iPhone でレトロゲームを合法的に楽しむための解説記事一覧。Delta エミュレータの使い方、GB Operator によるカートリッジ吸い出し、エミュレータと著作権の整理など、初心者にもわかりやすく解説しています。"
+>
+  <Fragment slot="schema">
+    <Schema data={breadcrumbSchema} />
+    <Schema data={articleListSchema} />
+  </Fragment>
+
+  <main class="max-w-6xl mx-auto px-4 py-6 sm:py-12">
+    <div class="mb-6 sm:mb-8 pb-6 sm:pb-8 border-b-2 border-indigo-200 relative overflow-hidden bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-4 sm:p-8 rounded-xl">
+      <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-3 text-slate-800 flex items-center gap-2 sm:gap-3">
+        <span class="material-symbols-outlined text-indigo-500 text-[2rem] sm:text-[2.5rem]" aria-hidden="true">library_books</span>
+        記事一覧
+      </h1>
+      <p class="text-sm sm:text-base text-gray-600 leading-relaxed">
+        iPhone でレトロゲームを合法的に楽しむための解説記事を、テーマ別にまとめています。はじめての方は「<a href={`${base}articles/delta-guide/`} class="text-blue-600 underline font-medium">Delta 完全ガイド</a>」から、合法プレイの全体像を知りたい方は「<a href={`${base}articles/emulator-legal/`} class="text-blue-600 underline font-medium">エミュレータと著作権</a>」からどうぞ。
+      </p>
+    </div>
+
+    <section class="mb-8 sm:mb-12">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+        {articles.map(article => (
+          <a href={`${base}${article.href.slice(1)}`} class="group block h-full p-4 sm:p-6 bg-white rounded-2xl border border-gray-200 transition-[border-color,box-shadow,transform] duration-200 hover:shadow-lg hover:-translate-y-1">
+            <h3 class="font-bold text-base sm:text-lg text-gray-900 mb-1.5 sm:mb-2 group-hover:text-indigo-600 transition-colors">{article.title}</h3>
+            <p class="text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4 line-clamp-2">{article.desc}</p>
+            <span class={`inline-block px-3 py-1 text-xs font-medium rounded-full ${article.tagColor}`}>{article.tag}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <!-- 姉妹サイト案内 -->
+    <aside class="p-4 sm:p-6 bg-gradient-to-br from-blue-50 to-sky-50 border border-blue-200 rounded-2xl">
+      <h2 class="text-base sm:text-lg font-bold text-gray-900 mb-2 flex items-start gap-2">
+        <span class="material-symbols-outlined text-blue-500 flex-shrink-0" aria-hidden="true">apps</span>
+        AltStore PAL・サイドローディング情報は姉妹サイトへ
+      </h2>
+      <p class="text-sm sm:text-base text-gray-700 leading-relaxed">
+        <strong>AltStore PAL の使い方</strong>、<strong>スマホ新法（MSCA）解説</strong>、<strong>サイドローディングの仕組み</strong>については、姉妹サイト <a href="https://altstore-jp.bunchoniki.com/articles/" target="_blank" rel="noopener" class="text-blue-600 underline font-medium">bunchoniki Store</a> でより深く解説しています。
+      </p>
+    </aside>
+  </main>
+</BaseLayout>

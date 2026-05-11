@@ -1,0 +1,160 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import bunchoImg from '../assets/images/buncho.png';
+
+interface Props {
+  num: number;
+  title: string;
+  desc?: string;
+  image?: ImageMetadata | string;
+  alt?: string;
+  advice?: string;
+  fullWidth?: boolean; // 画像があっても1列レイアウトを強制
+}
+
+const { num, title, desc, image, alt, advice, fullWidth = false } = Astro.props;
+
+// fullWidth が true または image がない場合は1列レイアウト
+const useGridLayout = image && !fullWidth;
+---
+
+<div class={`${useGridLayout ? 'grid md:grid-cols-2 gap-6 items-center' : ''}`}>
+
+  <div>
+    <div class="flex items-start gap-3 mb-2">
+      <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white text-xs font-bold flex-shrink-0 mt-0.5">
+        {num}
+      </span>
+      <div>
+        <h3 class="font-semibold text-gray-900">
+          {title}
+        </h3>
+        {desc && (
+          <p class="text-gray-600 text-sm leading-relaxed mt-1">
+            {desc}
+          </p>
+        )}
+      </div>
+    </div>
+
+    {image && !useGridLayout && (
+      typeof image === 'string' ? (
+        <img
+          src={image}
+          alt={alt ?? title}
+          loading="lazy"
+          class="w-full max-w-full sm:max-w-sm mx-auto rounded-xl border shadow-sm cursor-pointer hover:opacity-90 transition-opacity mt-3"
+          data-lightbox
+        />
+      ) : (
+        <Image
+          src={image}
+          alt={alt ?? title}
+          loading="lazy"
+          class="w-full max-w-full sm:max-w-sm mx-auto rounded-xl border shadow-sm cursor-pointer hover:opacity-90 transition-opacity mt-3"
+          data-lightbox
+          format="webp"
+          quality={85}
+        />
+      )
+    )}
+    <slot />
+  </div>
+
+  {image && useGridLayout && (
+    typeof image === 'string' ? (
+      <img
+        src={image}
+        alt={alt ?? title}
+        loading="lazy"
+        class="w-full rounded-xl border shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
+        data-lightbox
+      />
+    ) : (
+      <Image
+        src={image}
+        alt={alt ?? title}
+        loading="lazy"
+        class="w-full rounded-xl border shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
+        data-lightbox
+        format="webp"
+        quality={85}
+      />
+    )
+  )}
+
+  {advice && (
+    <div class="mt-3 flex items-start gap-2.5 buncho-advice">
+      <Image
+        src={bunchoImg}
+        alt="アドバイスを提供するマスコット「ぶんちゃん」"
+        class="w-8 h-8 rounded-full flex-shrink-0 shadow-sm ring-2 ring-yellow-200"
+        loading="lazy"
+        format="webp"
+        quality={85}
+        width={32}
+        height={32}
+      />
+      <div class="relative bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl rounded-tl-none px-3.5 py-2.5 shadow-sm max-w-md">
+        <div class="absolute -left-2 top-2.5 w-2 h-2 bg-yellow-50 border-l border-b border-yellow-200 rotate-45"></div>
+        <p class="text-gray-700 text-xs leading-relaxed">
+          <span class="font-bold text-yellow-700 mr-1">ぶんちゃん</span>
+          <span set:html={advice} />
+        </p>
+      </div>
+    </div>
+  )}
+</div>
+
+<script>
+  function initLightbox() {
+    if (document.getElementById('lightbox-modal')) return;
+
+    const modal = document.createElement('div');
+    modal.id = 'lightbox-modal';
+    modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/80 hidden';
+    modal.innerHTML = `
+      <div class="relative max-w-screen-lg max-h-screen p-4">
+        <button id="lightbox-close" class="absolute -top-3 -right-3 text-white bg-gray-700 rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-900 transition-colors">
+          <span class="material-symbols-outlined" style="font-size:18px">close</span>
+        </button>
+        <img id="lightbox-img" src="" alt="" class="max-w-full max-h-[90vh] rounded-lg shadow-2xl" />
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    document.getElementById('lightbox-close')?.addEventListener('click', closeLightbox);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeLightbox();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLightbox();
+    });
+  }
+
+  function openLightbox(src: string, alt: string) {
+    const modal = document.getElementById('lightbox-modal');
+    const img = document.getElementById('lightbox-img') as HTMLImageElement | null;
+    if (modal && img) {
+      img.src = src;
+      img.alt = alt;
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeLightbox() {
+    const modal = document.getElementById('lightbox-modal');
+    if (modal) {
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+  }
+
+  initLightbox();
+
+  document.querySelectorAll<HTMLImageElement>('[data-lightbox]').forEach((img) => {
+    img.addEventListener('click', () => openLightbox(img.src, img.alt));
+  });
+</script>

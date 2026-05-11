@@ -1,0 +1,142 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Material Symbols アイコン設定 */
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+  vertical-align: middle;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* タイポグラフィ */
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont,
+    "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+    "Yu Gothic", "YuGothic", "Meiryo",
+    "Segoe UI", "Roboto", "Helvetica Neue", Arial,
+    sans-serif;
+  font-feature-settings: "palt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  line-height: 1.625;
+  letter-spacing: 0.01em;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* アニメーション軽減設定（アクセシビリティ対応） */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* 自動再生動画を一時停止（index.astroのJSで視覚的に対応、CSSは念押し） */
+  video[autoplay] {
+    visibility: visible;
+  }
+}
+
+/* フォーカス可視状態（キーボード操作時のみ表示・アクセシビリティ対応） */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::selection {
+  background-color: #2563eb;
+  color: white;
+}
+
+@layer utilities {
+  .buncho-text-gradient {
+    background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .notarized-badge {
+    @apply inline-flex items-center gap-1 bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-semibold;
+  }
+
+  .app-card {
+    @apply bg-white rounded-2xl border border-gray-200
+           hover:border-gray-300 hover:shadow-md
+           transition-[border-color,box-shadow] duration-300 p-6;
+  }
+
+  .app-card-image {
+    @apply w-16 h-16 rounded-xl object-cover mb-4;
+  }
+
+  .btn-primary {
+    @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl
+           transition-[background-color,box-shadow,transform] duration-200 ease-out
+           touch-manipulation;
+    @apply hover:shadow-md hover:scale-[1.02];
+  }
+
+  .btn-secondary {
+    @apply bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold py-3 px-6 rounded-xl
+           transition-[background-color,box-shadow] duration-200 ease-out border border-gray-200
+           touch-manipulation;
+    @apply hover:shadow-sm;
+  }
+
+  .text-truncate-2 {
+    @apply line-clamp-2;
+  }
+
+  .feature-icon {
+    font-size: 2.5rem;
+    color: #2563eb;
+  }
+
+  .rating-icon {
+    color: #f59e0b;
+    font-variation-settings: 'FILL' 1, 'wght' 400;
+    font-size: 1.25rem;
+  }
+
+  .warning-icon {
+    color: #f59e0b;
+    font-size: 1.5rem;
+  }
+
+  .check-icon {
+    color: #10b981;
+    font-size: 1.25rem;
+  }
+
+  .icon-with-text {
+    @apply inline-flex items-center gap-2;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
